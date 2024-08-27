@@ -7,6 +7,7 @@ import time
 import cv2
 import tqdm
 import numpy as np
+import matplotlib.pyplot as plt
 
 from detectron2.config import get_cfg
 from detectron2.data.detection_utils import read_image
@@ -21,6 +22,7 @@ WINDOW_NAME = "COCO detections"
 def setup_cfg(args):
     # load config from file and command-line arguments
     cfg = get_cfg()
+    cfg.set_new_allowed(True)
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
     # Set model
@@ -87,29 +89,33 @@ def compute_polygon_area(points):
     return abs(s/2.0)
     
 
-def save_result_to_txt(txt_save_path,prediction,polygons):
+def save_result_to_txt(txt_save_path,prediction):
 
-    file = open(txt_save_path,'w')
+    # file = open(txt_save_path,'w')
 
     classes = prediction['instances'].pred_classes
+    polygons = prediction['instances'].pred_boxes
+    print(classes)
+    print(polygons)
+    print(len(classes), '\t', len(polygons))
 
-    for i in range(len(classes)):
-        if classes[i]==0:
-            if len(polygons[i]) != 0:
-                points = []
-                for j in range(0,len(polygons[i][0]),2):
-                    points.append([polygons[i][0][j],polygons[i][0][j+1]])
-                points = np.array(points)
-                area = compute_polygon_area(points)
-                rect = cv2.minAreaRect(points)
-                box = cv2.boxPoints(rect)
+    # for i in range(len(classes)):
+    #     if classes[i]==0:
+    #         if len(polygons[i]) != 0:
+    #             points = []
+    #             for j in range(0,len(polygons[i][0]),2):
+    #                 points.append([polygons[i][0][j],polygons[i][0][j+1]])
+    #             points = np.array(points)
+    #             area = compute_polygon_area(points)
+    #             rect = cv2.minAreaRect(points)
+    #             box = cv2.boxPoints(rect)
 
-                if area > 175:
-                    file.writelines(str(int(box[0][0]))+','+str(int(box[0][1]))+','+str(int(box[1][0]))+','+str(int(box[1][1]))+','
-                              +str(int(box[2][0]))+','+str(int(box[2][1]))+','+str(int(box[3][0]))+','+str(int(box[3][1])))
-                    file.write('\r\n')
+    #             if area > 175:
+    #                 file.writelines(str(int(box[0][0]))+','+str(int(box[0][1]))+','+str(int(box[1][0]))+','+str(int(box[1][1]))+','
+    #                           +str(int(box[2][0]))+','+str(int(box[2][1]))+','+str(int(box[3][0]))+','+str(int(box[3][1])))
+    #                 file.write('\r\n')
 
-    file.close()
+    # file.close()
 
 
 if __name__ == "__main__":
@@ -124,20 +130,24 @@ if __name__ == "__main__":
 
     start_time_all = time.time()
     img_count = 0
-    for i in glob.glob(test_images_path):
+    print(test_images_path)
+    print(type(test_images_path))
+    for i in glob.glob(test_images_path[0]):
         print(i)
         img_name = os.path.basename(i)
         img_save_path = output_path + img_name.split('.')[0] + '.jpg'
         img = cv2.imread(i)
         start_time = time.time()
 
-        prediction, vis_output, polygons = detection_demo.run_on_image(img)
+        prediction, vis_output = detection_demo.run_on_image(img)
+        print(f'prediction: {prediction}')
+        # print(f'vis_output: {vis_output.get_image()}')
+        vis_output.save(img_save_path)
 
         txt_save_path = output_path + 'res_' + img_name.split('.')[0] + '.txt'
-        save_result_to_txt(txt_save_path,prediction,polygons)
+        save_result_to_txt(txt_save_path,prediction)
 
         print("Time: {:.2f} s / img".format(time.time() - start_time))
-        vis_output.save(img_save_path)
         img_count += 1
     print("Average Time: {:.2f} s /img".format((time.time() - start_time_all) / img_count))
 
