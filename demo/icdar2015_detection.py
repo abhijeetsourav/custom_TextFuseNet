@@ -91,31 +91,32 @@ def compute_polygon_area(points):
 
 def save_result_to_txt(txt_save_path,prediction):
 
-    # file = open(txt_save_path,'w')
+    file = open(txt_save_path,'w')
 
     classes = prediction['instances'].pred_classes
+    classes = classes.tolist()
     polygons = prediction['instances'].pred_boxes
-    print(classes)
-    print(polygons)
-    print(len(classes), '\t', len(polygons))
+    polygons = polygons.tensor.tolist()
 
-    # for i in range(len(classes)):
-    #     if classes[i]==0:
-    #         if len(polygons[i]) != 0:
-    #             points = []
-    #             for j in range(0,len(polygons[i][0]),2):
-    #                 points.append([polygons[i][0][j],polygons[i][0][j+1]])
-    #             points = np.array(points)
-    #             area = compute_polygon_area(points)
-    #             rect = cv2.minAreaRect(points)
-    #             box = cv2.boxPoints(rect)
+    for i in range(len(classes)):
+        if classes[i]==0:
+            if len(polygons[i]) != 0:
+                points = polygons[i]
 
-    #             if area > 175:
-    #                 file.writelines(str(int(box[0][0]))+','+str(int(box[0][1]))+','+str(int(box[1][0]))+','+str(int(box[1][1]))+','
-    #                           +str(int(box[2][0]))+','+str(int(box[2][1]))+','+str(int(box[3][0]))+','+str(int(box[3][1])))
-    #                 file.write('\r\n')
+                # points = []
+                # for j in range(0,len(polygons[i][0]),2):
+                #     points.append([polygons[i][0][j],polygons[i][0][j+1]])
+                points = np.array(points)
+                area = compute_polygon_area(points)
+                rect = cv2.minAreaRect(points)
+                box = cv2.boxPoints(rect)
 
-    # file.close()
+                if area > 175:
+                    file.writelines(str(int(box[0][0]))+','+str(int(box[0][1]))+','+str(int(box[1][0]))+','+str(int(box[1][1]))+','
+                              +str(int(box[2][0]))+','+str(int(box[2][1]))+','+str(int(box[3][0]))+','+str(int(box[3][1])))
+                    file.write('\r\n')
+
+    file.close()
 
 
 if __name__ == "__main__":
@@ -130,8 +131,6 @@ if __name__ == "__main__":
 
     start_time_all = time.time()
     img_count = 0
-    print(test_images_path)
-    print(type(test_images_path))
     for i in glob.glob(test_images_path[0]):
         print(i)
         img_name = os.path.basename(i)
