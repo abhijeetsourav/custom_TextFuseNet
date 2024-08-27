@@ -101,7 +101,7 @@ def save_result_to_txt(txt_save_path,prediction):
     for i in range(len(classes)):
         if classes[i]==0:
             if len(polygons[i]) != 0:
-                points = polygons[i]
+                points = [polygons[i][:2], polygons[i][2:]]
 
                 # points = []
                 # for j in range(0,len(polygons[i][0]),2):
