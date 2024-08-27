@@ -106,15 +106,15 @@ def save_result_to_txt(txt_save_path,prediction):
                 # points = []
                 # for j in range(0,len(polygons[i][0]),2):
                 #     points.append([polygons[i][0][j],polygons[i][0][j+1]])
-                points = np.array(points)
-                area = compute_polygon_area(points)
-                rect = cv2.minAreaRect(points)
-                box = cv2.boxPoints(rect)
+                # points = np.array(points)
+                # area = compute_polygon_area(points)
+                # rect = cv2.minAreaRect(points)
+                # box = cv2.boxPoints(rect)
 
-                if area > 175:
-                    file.writelines(str(int(box[0][0]))+','+str(int(box[0][1]))+','+str(int(box[1][0]))+','+str(int(box[1][1]))+','
-                              +str(int(box[2][0]))+','+str(int(box[2][1]))+','+str(int(box[3][0]))+','+str(int(box[3][1])))
-                    file.write('\r\n')
+                # if area > 175:
+                #     file.writelines(str(int(box[0][0]))+','+str(int(box[0][1]))+','+str(int(box[1][0]))+','+str(int(box[1][1]))+','
+                #               +str(int(box[2][0]))+','+str(int(box[2][1]))+','+str(int(box[3][0]))+','+str(int(box[3][1])))
+                #     file.write('\r\n')
 
     file.close()
 
@@ -138,9 +138,10 @@ if __name__ == "__main__":
         img = cv2.imread(i)
         start_time = time.time()
 
-        prediction, vis_output = detection_demo.run_on_image(img)
+        prediction, vis_output, polygons = detection_demo.run_on_image(img)
         # print(f'prediction: {prediction}')
         # print(f'vis_output: {vis_output.get_image()}')
+        print(polygons)
         vis_output.save(img_save_path)
 
         txt_save_path = output_path + 'res_' + img_name.split('.')[0] + '.txt'

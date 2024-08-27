@@ -4,6 +4,7 @@ import bisect
 import multiprocessing as mp
 from collections import deque
 import cv2
+from shapely import polygons
 import torch
 
 from detectron2.data import MetadataCatalog
@@ -61,9 +62,9 @@ class VisualizationDemo(object):
                 )
             if "instances" in predictions:
                 instances = predictions["instances"].to(self.cpu_device)
-                vis_output = visualizer.draw_instance_predictions(predictions=instances)
+                vis_output, polygons = visualizer.draw_instance_predictions(predictions=instances)
 
-        return predictions, vis_output
+        return predictions, vis_output, polygons
 
     def _frame_from_video(self, video):
         while video.isOpened():
