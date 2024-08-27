@@ -13,7 +13,7 @@ cudatoolkit==10.1.243
 cycler==0.10.0                 
 cython==0.29.12             
 decorator==4.4.0                    
-detectron2                	  0.1               
+detectron2==0.1               
 freetype==2.9.1             
 fvcore==0.1                     
 geos==3.8.1              
