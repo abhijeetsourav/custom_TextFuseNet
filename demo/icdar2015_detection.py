@@ -139,7 +139,7 @@ if __name__ == "__main__":
         start_time = time.time()
 
         prediction, vis_output = detection_demo.run_on_image(img)
-        print(f'prediction: {prediction}')
+        # print(f'prediction: {prediction}')
         # print(f'vis_output: {vis_output.get_image()}')
         vis_output.save(img_save_path)
 
