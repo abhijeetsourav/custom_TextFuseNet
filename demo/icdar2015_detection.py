@@ -154,9 +154,6 @@ if __name__ == "__main__":
     img_count = 0
     for i in glob.glob(test_images_path[0]):
 
-        if img_count == 10:
-          break
-
         print(i)
         img_name = os.path.basename(i)
         img_save_path = output_path + img_name.split('.')[0] + '_detectron_.jpg'
