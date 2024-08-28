@@ -89,7 +89,7 @@ def compute_polygon_area(points):
     return abs(s/2.0)
     
 
-def save_result_to_csv(csv_save_path,prediction, b_boxes):
+def save_result_to_csv(csv_save_path, prediction, b_boxes):
 
     classes = prediction['instances'].pred_classes
     scores = prediction['instances'].scores.tolist()    
@@ -157,7 +157,7 @@ if __name__ == "__main__":
     for i in glob.glob(test_images_path[0]):
         print(i)
         img_name = os.path.basename(i)
-        img_save_path = output_path + img_name.split('.')[0] + '_detectron_.jpg'
+        img_save_path = output_path + img_name.split('.')[0] + '.png'
         img = cv2.imread(i)
         start_time = time.time()
         
@@ -186,7 +186,7 @@ if __name__ == "__main__":
         csv_save_path = output_path + 'res_' + img_name.split('.')[0] + '.csv'
         save_result_to_csv(csv_save_path, prediction, b_boxes)
 
-        draw_and_save_b_boxes(img, b_boxes, img_save_path.replace('_detectron_.jpg', '.png'))
+        draw_and_save_b_boxes(img, prediction, b_boxes, img_save_path)
 
         print("total_time: {:.2f} s / img".format(time.time() - start_time))
 
