@@ -151,9 +151,6 @@ import cv2
 import glob
 
 def process_image(image_path):
-
-    global image_counter
-    image_counter += 1
     
     img_name = os.path.basename(image_path)
     img_save_path = output_path + img_name.split('.')[0] + '.png'
@@ -203,8 +200,6 @@ if __name__ == "__main__":
     output_path = args.output
 
     start_time_all = time.time()
-
-    img_counter = 0
 
     # Use multiprocessing to process images in parallel
     with mp.Pool(processes=mp.cpu_count()) as pool:
