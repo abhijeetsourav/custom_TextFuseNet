@@ -111,7 +111,7 @@ def save_result_to_csv(csv_save_path,prediction, b_boxes):
             area = compute_polygon_area(box)
             # print(f'area: {area}')
             if area > 175:
-                csvwriter.writerows([int(box[0][0]), int(box[0][1]), int(box[1][0]), int(box[1][1]), int(box[2][0]), int(box[2][1]), int(box[3][0]), int(box[3][1]), int(scores[i] * 100) / 100.0] )
+                csvwriter.writerow([int(box[0][0]), int(box[0][1]), int(box[1][0]), int(box[1][1]), int(box[2][0]), int(box[2][1]), int(box[3][0]), int(box[3][1]), int(scores[i] * 100) / 100.0] )
                 # file.writelines(str(int(box[0][0]))+','+str(int(box[0][1]))+','+str(int(box[1][0]))+','+str(int(box[1][1]))+','
                 #                       +str(int(box[2][0]))+','+str(int(box[2][1]))+','+str(int(box[3][0]))+','+str(int(box[3][1])))
                 # file.write('\r\n')
