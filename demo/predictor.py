@@ -8,11 +8,12 @@ import torch
 import importlib.util
 import sys
 import os
+import numpy as np
 
 from detectron2.data import MetadataCatalog
 from detectron2.engine.defaults import DefaultPredictor
 from detectron2.utils.video_visualizer import VideoVisualizer
-from detectron2.utils.visualizer import ColorMode, Visualizer
+from detectron2.utils.visualizer import ColorMode, Visualizer, GenericMask
 
 
 # # importing custom module
@@ -64,7 +65,14 @@ class VisualizationDemo(object):
         predictions = self.predictor(image)
         # Convert image from OpenCV BGR format to Matplotlib RGB format.
         image = image[:, :, ::-1]
-        # visualizer = Visualizer(image, self.metadata, instance_mode=self.instance_mode)
+        visualizer = Visualizer(image, self.metadata, instance_mode=self.instance_mode)
+
+        if predictions.has("pred_masks"):
+            masks = np.asarray(predictions.pred_masks)
+            masks = [GenericMask(x, visualizer.output.height, visualizer.output.width) for x in masks]
+        else:
+            masks = None
+
         # if "panoptic_seg" in predictions:
         #     panoptic_seg, segments_info = predictions["panoptic_seg"]
         #     vis_output = visualizer.draw_panoptic_seg_predictions(
@@ -79,7 +87,12 @@ class VisualizationDemo(object):
         #         instances = predictions["instances"].to(self.cpu_device)
         #         vis_output = visualizer.draw_instance_predictions(predictions=instances)
 
-        return predictions
+        ### get polygons. yejian 2020-5-6
+        polygon_list = []
+        for mask in masks:
+            polygon_list.append(mask.polygons)
+
+        return predictions, polygon_list
 
     def _frame_from_video(self, video):
         while video.isOpened():
