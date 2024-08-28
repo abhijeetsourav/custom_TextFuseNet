@@ -9,6 +9,7 @@ import tqdm
 import numpy as np
 import csv
 import multiprocessing as mp
+import json
 
 from detectron2.config import get_cfg
 from detectron2.data.detection_utils import read_image
@@ -153,18 +154,34 @@ def process_image(image_path):
     det_time = time.time() - start_time
     print("det_time: {:.2f} s / img".format(det_time))
 
-    contours = []
+    # contours = []
+    masks_list = []  # To store the pred_masks as lists
+
+    print(prediction['instances'].pred_masks)
+
     for pred_mask in prediction['instances'].pred_masks:
+        # Convert pred_mask to a numpy array and then to a list
         mask = np.array(pred_mask.tolist(), dtype=np.uint8)
-        contour, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-        contours.append(contour[0])
+        masks_list.append(mask.tolist())  # Store the mask as a list
+        
+    #     # Find contours for the mask
+    #     contour, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+    #     contours.append(contour[0])
 
-    b_boxes = get_bboxes(contours)
+    # # Now, let's calculate bounding boxes (this function should already be defined in your code)
+    # b_boxes = get_bboxes(contours)
 
-    csv_save_path = output_path + 'res_' + img_name.split('.')[0] + '.csv'
-    save_result_to_csv(csv_save_path, prediction, b_boxes)
+    # # Save the bounding boxes to a CSV file (assuming save_result_to_csv is already defined)
+    # csv_save_path = output_path + 'res_' + img_name.split('.')[0] + '.csv'
+    # save_result_to_csv(csv_save_path, prediction, b_boxes)
 
-    draw_and_save_b_boxes(img, prediction, b_boxes, img_save_path)
+    # # Draw and save bounding boxes on the image (assuming draw_and_save_b_boxes is already defined)
+    # draw_and_save_b_boxes(img, prediction, b_boxes, img_save_path)
+
+    # Save pred_masks to a JSON file
+    json_save_path = output_path + 'masks_' + img_name.split('.')[0] + '.json'
+    with open(json_save_path, 'w') as json_file:
+        json.dump(masks_list, json_file)
 
     return det_time
 
@@ -173,7 +190,7 @@ if __name__ == "__main__":
     cfg = setup_cfg(args)
     detection_demo = VisualizationDemo(cfg, parallel=True)
 
-    test_images_path = glob.glob(args.input[0])
+    test_images_path = glob.glob(args.input[0][:10])
     output_path = args.output
 
     start_time_all = time.time()
