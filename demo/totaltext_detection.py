@@ -185,7 +185,6 @@ def process_image(image_path):
 
     print("det_time: {:.2f} s / img".format(det_time))
 
-    print("image_counter: {}".format(image_counter).center(20))
 
     
     return det_time
