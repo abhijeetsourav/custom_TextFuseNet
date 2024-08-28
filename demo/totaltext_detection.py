@@ -166,8 +166,8 @@ if __name__ == "__main__":
         det_time_all += det_time
         print("det_time: {:.2f} s / img".format(det_time))
 
-        txt_save_path = output_path + 'res_img' + img_name.split('.')[0].split('img')[1] + '.txt'
-        save_result_to_csv(txt_save_path,prediction)
+        csv_save_path = output_path + 'res_' + img_name.split('.')[0] + '.csv'
+        save_result_to_csv(csv_save_path, prediction, b_boxes)
 
         # vis_output.save(img_save_path)
 
