@@ -5,11 +5,27 @@ import multiprocessing as mp
 from collections import deque
 import cv2
 import torch
+import importlib.util
+import sys
+import os
 
 from detectron2.data import MetadataCatalog
 from detectron2.engine.defaults import DefaultPredictor
 from detectron2.utils.video_visualizer import VideoVisualizer
 from detectron2.utils.visualizer import ColorMode, Visualizer
+
+
+# importing custom module
+module_name = "visualizer"
+file_path = os.path.join(os.path.dirname((os.path.dirname(__file__))), 'detectron2', 'utils', 'visualizer.py')
+print(file_path)
+
+spec   = importlib.util.spec_from_file_location(module_name, file_path)
+module = importlib.util.module_from_spec(spec)
+sys.modules[module_name] = module
+spec.loader.exec_module(module) 
+
+
 
 
 class VisualizationDemo(object):
@@ -48,7 +64,7 @@ class VisualizationDemo(object):
         predictions = self.predictor(image)
         # Convert image from OpenCV BGR format to Matplotlib RGB format.
         image = image[:, :, ::-1]
-        visualizer = Visualizer(image, self.metadata, instance_mode=self.instance_mode)
+        visualizer = module.Visualizer(image, self.metadata, instance_mode=self.instance_mode)
         if "panoptic_seg" in predictions:
             panoptic_seg, segments_info = predictions["panoptic_seg"]
             vis_output = visualizer.draw_panoptic_seg_predictions(
