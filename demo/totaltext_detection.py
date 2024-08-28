@@ -157,12 +157,14 @@ def process_image(image_path):
     # contours = []
     masks_list = []  # To store the pred_masks as lists
 
-    print(prediction['instances'].pred_masks)
+    print(prediction['instances'].pred_masks.shape)
+    print(prediction['instances'].pred_masks.tolist())
 
     for pred_mask in prediction['instances'].pred_masks:
         # Convert pred_mask to a numpy array and then to a list
         mask = np.array(pred_mask.tolist(), dtype=np.uint8)
         masks_list.append(mask.tolist())  # Store the mask as a list
+        print(masks_list)
         
     #     # Find contours for the mask
     #     contour, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
@@ -180,8 +182,8 @@ def process_image(image_path):
 
     # Save pred_masks to a JSON file
     json_save_path = output_path + 'masks_' + img_name.split('.')[0] + '.json'
-    with open(json_save_path, 'w') as json_file:
-        json.dump(masks_list, json_file)
+    # with open(json_save_path, 'w') as json_file:
+    #     json.dump(masks_list, json_file)
 
     return det_time
 
