@@ -67,8 +67,8 @@ class VisualizationDemo(object):
         image = image[:, :, ::-1]
         visualizer = Visualizer(image, self.metadata, instance_mode=self.instance_mode)
 
-        if predictions.pred_masks:
-            masks = np.asarray(predictions.pred_masks)
+        if predictions["pred_masks"]:
+            masks = np.asarray(predictions["pred_masks"])
             masks = [GenericMask(x, visualizer.output.height, visualizer.output.width) for x in masks]
         else:
             masks = None
