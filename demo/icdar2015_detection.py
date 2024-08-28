@@ -95,6 +95,7 @@ def compute_polygon_area(points):
 def save_result_to_csv(csv_save_path,prediction, b_boxes):
 
     classes = prediction['instances'].pred_classes
+    scores = prediction['instances'].scores.tolist()    
 
     with open(csv_save_path, 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile)
@@ -110,7 +111,7 @@ def save_result_to_csv(csv_save_path,prediction, b_boxes):
             area = compute_polygon_area(box)
             # print(f'area: {area}')
             if area > 175:
-                csvwriter.writerows(int(box[0][0]), int(box[0][1]), int(box[1][0]), int(box[1][1]), int(box[2][0]), int(box[2][1]), int(box[3][0]), int(box[3][1]) )
+                csvwriter.writerows(int(box[0][0]), int(box[0][1]), int(box[1][0]), int(box[1][1]), int(box[2][0]), int(box[2][1]), int(box[3][0]), int(box[3][1]), int(scores[100] * 100) / 100.0 )
                 # file.writelines(str(int(box[0][0]))+','+str(int(box[0][1]))+','+str(int(box[1][0]))+','+str(int(box[1][1]))+','
                 #                       +str(int(box[2][0]))+','+str(int(box[2][1]))+','+str(int(box[3][0]))+','+str(int(box[3][1])))
                 # file.write('\r\n')
@@ -163,7 +164,6 @@ if __name__ == "__main__":
         start_time = time.time()
 
         prediction, vis_output = detection_demo.run_on_image(img)
-        print(prediction)
         vis_output.save(img_save_path)
 
         
@@ -189,14 +189,14 @@ if __name__ == "__main__":
         
         b_boxes = get_bboxes(contours)
 
-        # draw_and_save_b_boxes(img, b_boxes, img_save_path.replace('_detectron_.jpg', '.png'))
+        draw_and_save_b_boxes(img, b_boxes, img_save_path.replace('_detectron_.jpg', '.png'))
         
 
 
 
 
         csv_save_path = output_path + 'res_' + img_name.split('.')[0] + '.csv'
-        # save_result_to_csv(csv_save_path, prediction, b_boxes)
+        save_result_to_csv(csv_save_path, prediction, b_boxes)
 
         print("Time: {:.2f} s / img".format(time.time() - start_time))
         img_count += 1
