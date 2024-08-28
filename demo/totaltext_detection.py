@@ -149,7 +149,7 @@ def process_image(image_path):
     img = cv2.imread(image_path)
     
     start_time = time.time()
-    prediction, vis_output = detection_demo.run_on_image(img)
+    prediction = detection_demo.run_on_image(img)
     det_time = time.time() - start_time
     print("det_time: {:.2f} s / img".format(det_time))
 
