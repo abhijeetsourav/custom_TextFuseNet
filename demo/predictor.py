@@ -4,7 +4,6 @@ import bisect
 import multiprocessing as mp
 from collections import deque
 import cv2
-import shapely 
 import torch
 
 from detectron2.data import MetadataCatalog
