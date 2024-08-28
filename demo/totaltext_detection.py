@@ -169,7 +169,7 @@ if __name__ == "__main__":
         txt_save_path = output_path + 'res_img' + img_name.split('.')[0].split('img')[1] + '.txt'
         save_result_to_csv(txt_save_path,prediction)
 
-        vis_output.save(img_save_path)
+        # vis_output.save(img_save_path)
 
         # Extract the contour of each predicted mask and save it in a list
         contours = []
