@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 print(sys.path)
 
 from detectron2.config import get_cfg
