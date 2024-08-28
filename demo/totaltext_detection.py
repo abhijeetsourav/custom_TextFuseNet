@@ -8,12 +8,14 @@ import cv2
 import tqdm
 import numpy as np
 import csv
+import multiprocessing as mp
 
 from detectron2.config import get_cfg
 from detectron2.data.detection_utils import read_image
 from detectron2.utils.logger import setup_logger
 
 from predictor import VisualizationDemo
+
 
 # constants
 WINDOW_NAME = "COCO detections"
@@ -141,58 +143,47 @@ def get_bboxes(contours):
     return np.array(cnts)
 
 
+def process_image(image_path):
+    img_name = os.path.basename(image_path)
+    img_save_path = output_path + img_name.split('.')[0] + '.png'
+    img = cv2.imread(image_path)
+    
+    start_time = time.time()
+    prediction, vis_output = detection_demo.run_on_image(img)
+    det_time = time.time() - start_time
+    print("det_time: {:.2f} s / img".format(det_time))
+
+    contours = []
+    for pred_mask in prediction['instances'].pred_masks:
+        mask = np.array(pred_mask.tolist(), dtype=np.uint8)
+        contour, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+        contours.append(contour[0])
+
+    b_boxes = get_bboxes(contours)
+
+    csv_save_path = output_path + 'res_' + img_name.split('.')[0] + '.csv'
+    save_result_to_csv(csv_save_path, prediction, b_boxes)
+
+    draw_and_save_b_boxes(img, prediction, b_boxes, img_save_path)
+
+    return det_time
+
 if __name__ == "__main__":
-
     args = get_parser().parse_args()
-
     cfg = setup_cfg(args)
     detection_demo = VisualizationDemo(cfg, parallel=True)
 
-    test_images_path = args.input
+    test_images_path = glob.glob(args.input[0])
     output_path = args.output
 
     start_time_all = time.time()
-    det_time_all = 0
-    img_count = 0
-    for i in glob.glob(test_images_path[0]):
-        print(i)
-        img_name = os.path.basename(i)
-        img_save_path = output_path + img_name.split('.')[0] + '.png'
-        img = cv2.imread(i)
-        start_time = time.time()
-        
-        prediction, vis_output = detection_demo.run_on_image(img)
-        det_time = time.time() - start_time
-        det_time_all += det_time
-        print("det_time: {:.2f} s / img".format(det_time))
 
-        
+    # Use multiprocessing to process images in parallel
+    with mp.Pool(processes=mp.cpu_count()) as pool:
+        det_times = pool.map(process_image, test_images_path)
 
-        # vis_output.save(img_save_path)
+    det_time_all = sum(det_times)
+    img_count = len(det_times)
 
-        # Extract the contour of each predicted mask and save it in a list
-        contours = []
-        for pred_mask in prediction['instances'].pred_masks:
-            # pred_mask is of type torch.Tensor, and the values are boolean (True, False)
-            # Convert it to a 8-bit numpy array, which can then be used to find contours
-            mask = np.array(pred_mask.tolist(), dtype=np.uint8)
-            contour, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-
-            contours.append(contour[0])
-
-        b_boxes = get_bboxes(contours)
-
-
-        csv_save_path = output_path + 'res_' + img_name.split('.')[0] + '.csv'
-        save_result_to_csv(csv_save_path, prediction, b_boxes)
-
-        draw_and_save_b_boxes(img, prediction, b_boxes, img_save_path)
-
-        print("total_time: {:.2f} s / img".format(time.time() - start_time))
-
-
-        img_count += 1
     print("Average Time: {:.2f} s /img".format((time.time() - start_time_all) / img_count))
     print("Average det_time: {:.2f} s /img".format(det_time_all / img_count))
-
-
