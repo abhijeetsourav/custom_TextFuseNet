@@ -15,15 +15,15 @@ from detectron2.utils.video_visualizer import VideoVisualizer
 from detectron2.utils.visualizer import ColorMode, Visualizer
 
 
-# importing custom module
-module_name = "visualizer"
-file_path = os.path.join(os.path.dirname((os.path.dirname(__file__))), 'detectron2', 'utils', 'visualizer.py')
-print(file_path)
+# # importing custom module
+# module_name = "visualizer"
+# file_path = os.path.join(os.path.dirname((os.path.dirname(__file__))), 'detectron2', 'utils', 'visualizer.py')
+# print(file_path)
 
-spec   = importlib.util.spec_from_file_location(module_name, file_path)
-module = importlib.util.module_from_spec(spec)
-sys.modules[module_name] = module
-spec.loader.exec_module(module) 
+# spec   = importlib.util.spec_from_file_location(module_name, file_path)
+# module = importlib.util.module_from_spec(spec)
+# sys.modules[module_name] = module
+# spec.loader.exec_module(module) 
 
 
 
@@ -64,7 +64,7 @@ class VisualizationDemo(object):
         predictions = self.predictor(image)
         # Convert image from OpenCV BGR format to Matplotlib RGB format.
         image = image[:, :, ::-1]
-        visualizer = module.Visualizer(image, self.metadata, instance_mode=self.instance_mode)
+        visualizer = Visualizer(image, self.metadata, instance_mode=self.instance_mode)
         if "panoptic_seg" in predictions:
             panoptic_seg, segments_info = predictions["panoptic_seg"]
             vis_output = visualizer.draw_panoptic_seg_predictions(
