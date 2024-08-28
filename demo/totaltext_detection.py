@@ -168,7 +168,15 @@ def process_image(image_path):
                 for j in range(0,len(polygons[i][0]),2):
                     points.append([polygons[i][0][j],polygons[i][0][j+1]])
                 points = np.array(points)
-                print(points)
+                
+                area = compute_polygon_area(points)
+                rect = cv2.minAreaRect(points)
+                box = cv2.boxPoints(rect)
+
+                if area > 175:
+                    print(str(int(box[0][0]))+','+str(int(box[0][1]))+','+str(int(box[1][0]))+','+str(int(box[1][1]))+','
+                              +str(int(box[2][0]))+','+str(int(box[2][1]))+','+str(int(box[3][0]))+','+str(int(box[3][1])))
+                    
 
     
 
