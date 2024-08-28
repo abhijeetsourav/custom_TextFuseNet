@@ -124,7 +124,7 @@ def draw_and_save_b_boxes(img, b_boxes, save_img_path):
         points = points.reshape((-1, 1, 2))
         cv2.polylines(img, [points], isClosed=True, color=(255, 0, 0), thickness=2)
 
-    cv2.imwrite(save_img_path)
+    cv2.imwrite(save_img_path, img)
 
 
 def get_bboxes(contours):
