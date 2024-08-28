@@ -145,6 +145,10 @@ def get_bboxes(contours):
 
 
 def process_image(image_path):
+
+    global image_counter
+    image_counter += 1
+    
     img_name = os.path.basename(image_path)
     img_save_path = output_path + img_name.split('.')[0] + '.png'
     img = cv2.imread(image_path)
@@ -178,6 +182,8 @@ def process_image(image_path):
 
     print("det_time: {:.2f} s / img".format(det_time))
 
+    print("image_counter: {}".format(image_counter).center(20))
+
     
     return det_time
 
@@ -191,6 +197,8 @@ if __name__ == "__main__":
     output_path = args.output
 
     start_time_all = time.time()
+
+    img_counter = 0
 
     # Use multiprocessing to process images in parallel
     with mp.Pool(processes=mp.cpu_count()) as pool:
