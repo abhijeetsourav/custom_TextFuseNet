@@ -69,7 +69,7 @@ def get_parser():
     )
 
     parser.add_argument(
-        "--confidence-threshold",
+        "--confidence_threshold",
         type=float,
         default=0.65,
         help="Minimum score for instance predictions to be shown",
@@ -118,9 +118,14 @@ def save_result_to_csv(csv_save_path,prediction, b_boxes):
 
 
 
-def draw_and_save_b_boxes(img, b_boxes, save_img_path):
+def draw_and_save_b_boxes(img, prediction, b_boxes, save_img_path):
     img = img.copy()
-    for points in b_boxes:
+
+    classes = prediction['instances'].pred_classes
+
+    for i, box in enumerate(b_boxes):
+        if classes[i] != 0:
+            break
         points = points.reshape((-1, 1, 2))
         cv2.polylines(img, [points], isClosed=True, color=(255, 0, 0), thickness=2)
 

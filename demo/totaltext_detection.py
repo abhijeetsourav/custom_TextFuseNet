@@ -7,6 +7,7 @@ import time
 import cv2
 import tqdm
 import numpy as np
+import csv
 
 from detectron2.config import get_cfg
 from detectron2.data.detection_utils import read_image
@@ -21,6 +22,7 @@ WINDOW_NAME = "COCO detections"
 def setup_cfg(args):
     # load config from file and command-line arguments
     cfg = get_cfg()
+    cfg.set_new_allowed(True)
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
     # Set model
@@ -64,7 +66,7 @@ def get_parser():
     )
 
     parser.add_argument(
-        "--confidence-threshold",
+        "--confidence_threshold",
         type=float,
         default=0.7,
         help="Minimum score for instance predictions to be shown",
@@ -87,28 +89,56 @@ def compute_polygon_area(points):
     return abs(s/2.0)
     
 
-def save_result_to_txt(txt_save_path,prediction,polygons):
+def save_result_to_csv(csv_save_path,prediction, b_boxes):
 
-    file = open(txt_save_path,'w')
+    classes = prediction['instances'].pred_classes
+    scores = prediction['instances'].scores.tolist()    
+
+    with open(csv_save_path, 'w', newline='') as csvfile:
+        csvwriter = csv.writer(csvfile)
+
+        csvwriter.writerow(['x1', 'y1', 'x2', 'y2', 'x3', 'y3', 'x4', 'y4', 'score'])
+
+
+
+        # print(b_boxes)
+        for i, box in enumerate(b_boxes):
+            if classes[i] != 0:
+                break
+            area = compute_polygon_area(box)
+            # print(f'area: {area}')
+            if area > 175:
+                csvwriter.writerow([int(box[0][0]), int(box[0][1]), int(box[1][0]), int(box[1][1]), int(box[2][0]), int(box[2][1]), int(box[3][0]), int(box[3][1]), int(scores[i] * 100) / 100.0] )
+                # file.writelines(str(int(box[0][0]))+','+str(int(box[0][1]))+','+str(int(box[1][0]))+','+str(int(box[1][1]))+','
+                #                       +str(int(box[2][0]))+','+str(int(box[2][1]))+','+str(int(box[3][0]))+','+str(int(box[3][1])))
+                # file.write('\r\n')
+
+
+def draw_and_save_b_boxes(img, prediction, b_boxes, save_img_path):
+    img = img.copy()
+
     classes = prediction['instances'].pred_classes
 
-    for i in range(len(classes)):
-        if classes[i]==0:
-            if len(polygons[i]) != 0:
-                points = []
-                for j in range(0,len(polygons[i][0]),2):
-                    points.append([polygons[i][0][j],polygons[i][0][j+1]])
-                points = np.array(points)
-                area = compute_polygon_area(points)
+    for i, box in enumerate(b_boxes):
+        if classes[i] != 0:
+            break
+        points = points.reshape((-1, 1, 2))
+        cv2.polylines(img, [points], isClosed=True, color=(255, 0, 0), thickness=2)
 
-                if area > 220:
-                    str_out = ''
-                    for pt in polygons[i][0]:
-                        str_out += str(pt)
-                        str_out += ','
-                    file.writelines(str_out+'###')
-                    file.writelines('\r\n')
-    file.close()
+    cv2.imwrite(save_img_path, img)
+
+
+def get_bboxes(contours):
+    cnts = list()
+    for cont in contours:
+        rect = cv2.minAreaRect(cont)
+    
+        if min(rect[1][0], rect[1][1]) <= 5:
+            continue
+        points = cv2.boxPoints(rect)
+        points = np.intp(points)
+        cnts.append(points)
+    return np.array(cnts)
 
 
 if __name__ == "__main__":
@@ -116,28 +146,50 @@ if __name__ == "__main__":
     args = get_parser().parse_args()
 
     cfg = setup_cfg(args)
-    detection_demo = VisualizationDemo(cfg)
+    detection_demo = VisualizationDemo(cfg, parallel=True)
 
     test_images_path = args.input
     output_path = args.output
 
     start_time_all = time.time()
+    det_time_all = 0
     img_count = 0
     for i in glob.glob(test_images_path):
         print(i)
         img_name = os.path.basename(i)
-        img_save_path = output_path + img_name.split('.')[0] + '.jpg'
+        img_save_path = output_path + img_name.split('.')[0] + '_detectron_.jpg'
         img = cv2.imread(i)
         start_time = time.time()
         
-        prediction, vis_output, polygons = detection_demo.run_on_image(img)
+        prediction, vis_output = detection_demo.run_on_image(img)
+        det_time = time.time() - start_time
+        det_time_all += det_time
+        print("det_time: {:.2f} s / img".format(det_time))
 
         txt_save_path = output_path + 'res_img' + img_name.split('.')[0].split('img')[1] + '.txt'
-        save_result_to_txt(txt_save_path,prediction,polygons)
+        save_result_to_csv(txt_save_path,prediction)
 
-        print("Time: {:.2f} s / img".format(time.time() - start_time))
         vis_output.save(img_save_path)
+
+        # Extract the contour of each predicted mask and save it in a list
+        contours = []
+        for pred_mask in prediction['instances'].pred_masks:
+            # pred_mask is of type torch.Tensor, and the values are boolean (True, False)
+            # Convert it to a 8-bit numpy array, which can then be used to find contours
+            mask = np.array(pred_mask.tolist(), dtype=np.uint8)
+            contour, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+
+            contours.append(contour[0])
+
+        b_boxes = get_bboxes(contours)
+
+        draw_and_save_b_boxes(img, b_boxes, img_save_path.replace('_detectron_.jpg', '.png'))
+
+        print("total_time: {:.2f} s / img".format(time.time() - start_time))
+
+
         img_count += 1
     print("Average Time: {:.2f} s /img".format((time.time() - start_time_all) / img_count))
+    print("Average det_time: {:.2f} s /img".format(det_time_all / img_count))
 
 
