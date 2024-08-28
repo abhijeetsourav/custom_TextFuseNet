@@ -166,8 +166,7 @@ if __name__ == "__main__":
         det_time_all += det_time
         print("det_time: {:.2f} s / img".format(det_time))
 
-        csv_save_path = output_path + 'res_' + img_name.split('.')[0] + '.csv'
-        save_result_to_csv(csv_save_path, prediction, b_boxes)
+        
 
         # vis_output.save(img_save_path)
 
@@ -182,6 +181,10 @@ if __name__ == "__main__":
             contours.append(contour[0])
 
         b_boxes = get_bboxes(contours)
+
+
+        csv_save_path = output_path + 'res_' + img_name.split('.')[0] + '.csv'
+        save_result_to_csv(csv_save_path, prediction, b_boxes)
 
         draw_and_save_b_boxes(img, b_boxes, img_save_path.replace('_detectron_.jpg', '.png'))
 
