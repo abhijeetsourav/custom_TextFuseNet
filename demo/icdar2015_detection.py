@@ -8,6 +8,9 @@ import cv2
 import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
+
+print(sys.path)
 
 from detectron2.config import get_cfg
 from detectron2.data.detection_utils import read_image
