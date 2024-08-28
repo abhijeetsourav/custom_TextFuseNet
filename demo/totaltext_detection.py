@@ -151,40 +151,34 @@ def process_image(image_path):
     
     start_time = time.time()
     prediction = detection_demo.run_on_image(img)
-    det_time = time.time() - start_time
-    print("det_time: {:.2f} s / img".format(det_time))
 
-    # contours = []
-    masks_list = []  # To store the pred_masks as lists
-
-    print(prediction['instances'].pred_masks.shape)
-    print(prediction['instances'].pred_masks.tolist())
+    contours = []
 
     for pred_mask in prediction['instances'].pred_masks:
         # Convert pred_mask to a numpy array and then to a list
         mask = np.array(pred_mask.tolist(), dtype=np.uint8)
-        masks_list.append(mask.tolist())  # Store the mask as a list
-        print(masks_list)
         
-    #     # Find contours for the mask
-    #     contour, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-    #     contours.append(contour[0])
+        # Find contours for the mask
+        contour, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+        contours.append(contour[0])
 
-    # # Now, let's calculate bounding boxes (this function should already be defined in your code)
-    # b_boxes = get_bboxes(contours)
+    # Now, let's calculate bounding boxes (this function should already be defined in your code)
+    b_boxes = get_bboxes(contours)
 
-    # # Save the bounding boxes to a CSV file (assuming save_result_to_csv is already defined)
-    # csv_save_path = output_path + 'res_' + img_name.split('.')[0] + '.csv'
-    # save_result_to_csv(csv_save_path, prediction, b_boxes)
+    # Save the bounding boxes to a CSV file (assuming save_result_to_csv is already defined)
+    csv_save_path = output_path + 'res_' + img_name.split('.')[0] + '.csv'
+    save_result_to_csv(csv_save_path, prediction, b_boxes)
 
-    # # Draw and save bounding boxes on the image (assuming draw_and_save_b_boxes is already defined)
-    # draw_and_save_b_boxes(img, prediction, b_boxes, img_save_path)
+    # Draw and save bounding boxes on the image (assuming draw_and_save_b_boxes is already defined)
+    draw_and_save_b_boxes(img, prediction, b_boxes, img_save_path)
 
-    # Save pred_masks to a JSON file
-    json_save_path = output_path + 'masks_' + img_name.split('.')[0] + '.json'
-    # with open(json_save_path, 'w') as json_file:
-    #     json.dump(masks_list, json_file)
 
+    
+    det_time = time.time() - start_time
+
+    print("det_time: {:.2f} s / img".format(det_time))
+
+    
     return det_time
 
 if __name__ == "__main__":
