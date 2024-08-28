@@ -67,9 +67,6 @@ class VisualizationDemo(object):
         image = image[:, :, ::-1]
         visualizer = Visualizer(image, self.metadata, instance_mode=self.instance_mode)
 
-        print(predictions['instances'])
-        print(type(predictions['instances']))
-
 
         if predictions["instances"]:
             masks = np.asarray(predictions["instances"].pred_masks)
