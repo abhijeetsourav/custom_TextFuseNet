@@ -122,7 +122,7 @@ def draw_and_save_b_boxes(img, prediction, b_boxes, save_img_path):
     for i, box in enumerate(b_boxes):
         if classes[i] != 0:
             break
-        points = points.reshape((-1, 1, 2))
+        points = box.reshape((-1, 1, 2))
         cv2.polylines(img, [points], isClosed=True, color=(255, 0, 0), thickness=2)
 
     cv2.imwrite(save_img_path, img)
