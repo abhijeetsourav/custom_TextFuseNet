@@ -9,7 +9,7 @@ import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
-
+import csv
 
 
 from detectron2.config import get_cfg
@@ -92,45 +92,38 @@ def compute_polygon_area(points):
     return abs(s/2.0)
     
 
-def save_result_to_txt(txt_save_path,prediction, contours):
+def save_result_to_csv(csv_save_path,prediction, b_boxes):
 
-    file = open(txt_save_path,'w')
+    classes = prediction['instances'].pred_classes
 
-    b_boxes = get_bboxes(contours)
+    with open(csv_save_path, 'w', newline='') as csvfile:
+        csvwriter = csv.writer(csvfile)
 
-    # print(b_boxes)
-    for box in b_boxes:
-      area = compute_polygon_area(box)
-      # print(f'area: {area}')
-      if area > 175:
-        file.writelines(str(int(box[0][0]))+','+str(int(box[0][1]))+','+str(int(box[1][0]))+','+str(int(box[1][1]))+','
-                              +str(int(box[2][0]))+','+str(int(box[2][1]))+','+str(int(box[3][0]))+','+str(int(box[3][1])))
-        file.write('\r\n')
+        csvwriter.writerow(['x1', 'y1', 'x2', 'y2', 'x3', 'y3', 'x4', 'y4', 'score'])
 
 
-    # classes = prediction['instances'].pred_classes
-    # polygons = prediction['instances'].pred_boxes
 
-    # for i in range(len(classes)):
-    #     if classes[i]==0:
-    #         if len(polygons[i]) != 0:
-    #             points = [polygons[i][:2], polygons[i][2:]]
+        # print(b_boxes)
+        for i, box in enumerate(b_boxes):
+            if classes[i] != 0:
+                break
+            area = compute_polygon_area(box)
+            # print(f'area: {area}')
+            if area > 175:
+                csvwriter.writerows(int(box[0][0]), int(box[0][1]), int(box[1][0]), int(box[1][1]), int(box[2][0]), int(box[2][1]), int(box[3][0]), int(box[3][1]) )
+                # file.writelines(str(int(box[0][0]))+','+str(int(box[0][1]))+','+str(int(box[1][0]))+','+str(int(box[1][1]))+','
+                #                       +str(int(box[2][0]))+','+str(int(box[2][1]))+','+str(int(box[3][0]))+','+str(int(box[3][1])))
+                # file.write('\r\n')
 
-                # points = []
-                # for j in range(0,len(polygons[i][0]),2):
-                #     points.append([polygons[i][0][j],polygons[i][0][j+1]])
-                # points = np.array(points)
-                # area = compute_polygon_area(points)
-                # rect = cv2.minAreaRect(points)
-                # box = cv2.boxPoints(rect)
 
-                # if area > 175:
-                #     file.writelines(str(int(box[0][0]))+','+str(int(box[0][1]))+','+str(int(box[1][0]))+','+str(int(box[1][1]))+','
-                #               +str(int(box[2][0]))+','+str(int(box[2][1]))+','+str(int(box[3][0]))+','+str(int(box[3][1])))
-                #     file.write('\r\n')
 
-    file.close()
+def draw_and_save_b_boxes(img, b_boxes, save_img_path):
+    img = img.copy()
+    for points in b_boxes:
+        points = points.reshape((-1, 1, 2))
+        cv2.polylines(img, [points], isClosed=True, color=(255, 0, 0), thickness=2)
 
+    cv2.imwrite(save_img_path)
 
 
 def get_bboxes(contours):
@@ -160,24 +153,21 @@ if __name__ == "__main__":
     img_count = 0
     for i in glob.glob(test_images_path[0]):
 
-        if img_count == 20:
+        if img_count == 10:
           break
 
         print(i)
         img_name = os.path.basename(i)
-        img_save_path = output_path + img_name.split('.')[0] + '.jpg'
+        img_save_path = output_path + img_name.split('.')[0] + '_detectron_.jpg'
         img = cv2.imread(i)
         start_time = time.time()
 
         prediction, vis_output = detection_demo.run_on_image(img)
-        print(f"prediction: {prediction['instances'].pred_masks}")
-        # print(f'vis_output: {vis_output.get_image()}')
-        # print(f'Image b_boxes: {type(polygons)} ---> {len(polygons)}')
+        print(prediction)
         vis_output.save(img_save_path)
 
         
 
-        # "outputs" is the inference output in the format described here - https://detectron2.readthedocs.io/tutorials/models.html#model-output-format
 
         # Extract the contour of each predicted mask and save it in a list
         contours = []
@@ -197,11 +187,16 @@ if __name__ == "__main__":
         # cv2.imwrite(img_save_path.replace('.jpg', '_contours.png'), image_with_overlaid_predictions)
 
         
+        b_boxes = get_bboxes(contours)
+
+        # draw_and_save_b_boxes(img, b_boxes, img_save_path.replace('_detectron_.jpg', '.png'))
         
 
 
-        txt_save_path = output_path + 'res_' + img_name.split('.')[0] + '.txt'
-        save_result_to_txt(txt_save_path,prediction, contours)
+
+
+        csv_save_path = output_path + 'res_' + img_name.split('.')[0] + '.csv'
+        # save_result_to_csv(csv_save_path, prediction, b_boxes)
 
         print("Time: {:.2f} s / img".format(time.time() - start_time))
         img_count += 1
