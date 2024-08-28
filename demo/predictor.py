@@ -69,10 +69,10 @@ class VisualizationDemo(object):
 
         print(predictions['instances'])
         print(type(predictions['instances']))
-        
+
 
         if predictions["instances"]:
-            masks = np.asarray(predictions["instances"])
+            masks = np.asarray(predictions["instances"].pred_masks)
             masks = [GenericMask(x, visualizer.output.height, visualizer.output.width) for x in masks]
         else:
             masks = None
