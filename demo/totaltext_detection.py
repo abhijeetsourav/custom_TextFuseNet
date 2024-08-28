@@ -8,7 +8,7 @@ import cv2
 import tqdm
 import numpy as np
 import csv
-import multiprocessing as mp
+from multiprocessing import Value, Pool
 import json
 
 from detectron2.config import get_cfg
