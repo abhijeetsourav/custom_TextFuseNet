@@ -92,19 +92,29 @@ def compute_polygon_area(points):
     return abs(s/2.0)
     
 
-def save_result_to_txt(txt_save_path,prediction):
+def save_result_to_txt(txt_save_path,prediction, contours):
 
     file = open(txt_save_path,'w')
 
-    classes = prediction['instances'].pred_classes
-    classes = classes.tolist()
-    polygons = prediction['instances'].pred_boxes
-    polygons = polygons.tensor.tolist()
+    b_boxes = get_bboxes(contours)
 
-    for i in range(len(classes)):
-        if classes[i]==0:
-            if len(polygons[i]) != 0:
-                points = [polygons[i][:2], polygons[i][2:]]
+    # print(b_boxes)
+    for box in b_boxes:
+      area = compute_polygon_area(box)
+      # print(f'area: {area}')
+      if area > 175:
+        file.writelines(str(int(box[0][0]))+','+str(int(box[0][1]))+','+str(int(box[1][0]))+','+str(int(box[1][1]))+','
+                              +str(int(box[2][0]))+','+str(int(box[2][1]))+','+str(int(box[3][0]))+','+str(int(box[3][1])))
+        file.write('\r\n')
+
+
+    # classes = prediction['instances'].pred_classes
+    # polygons = prediction['instances'].pred_boxes
+
+    # for i in range(len(classes)):
+    #     if classes[i]==0:
+    #         if len(polygons[i]) != 0:
+    #             points = [polygons[i][:2], polygons[i][2:]]
 
                 # points = []
                 # for j in range(0,len(polygons[i][0]),2):
@@ -122,6 +132,20 @@ def save_result_to_txt(txt_save_path,prediction):
     file.close()
 
 
+
+def get_bboxes(contours):
+    cnts = list()
+    for cont in contours:
+        rect = cv2.minAreaRect(cont)
+    
+        if min(rect[1][0], rect[1][1]) <= 5:
+            continue
+        points = cv2.boxPoints(rect)
+        points = np.intp(points)
+        cnts.append(points)
+    return np.array(cnts)
+
+
 if __name__ == "__main__":
 
     args = get_parser().parse_args()
@@ -135,20 +159,49 @@ if __name__ == "__main__":
     start_time_all = time.time()
     img_count = 0
     for i in glob.glob(test_images_path[0]):
+
+        if img_count == 20:
+          break
+
         print(i)
         img_name = os.path.basename(i)
         img_save_path = output_path + img_name.split('.')[0] + '.jpg'
         img = cv2.imread(i)
         start_time = time.time()
 
-        prediction, vis_output, polygons = detection_demo.run_on_image(img)
-        # print(f'prediction: {prediction}')
+        prediction, vis_output = detection_demo.run_on_image(img)
+        print(f"prediction: {prediction['instances'].pred_masks}")
         # print(f'vis_output: {vis_output.get_image()}')
-        print(f'Image b_boxes: {type(polygons)} ---> {polygons.shape}')
+        # print(f'Image b_boxes: {type(polygons)} ---> {len(polygons)}')
         vis_output.save(img_save_path)
 
+        
+
+        # "outputs" is the inference output in the format described here - https://detectron2.readthedocs.io/tutorials/models.html#model-output-format
+
+        # Extract the contour of each predicted mask and save it in a list
+        contours = []
+        for pred_mask in prediction['instances'].pred_masks:
+            # pred_mask is of type torch.Tensor, and the values are boolean (True, False)
+            # Convert it to a 8-bit numpy array, which can then be used to find contours
+            mask = np.array(pred_mask.tolist(), dtype=np.uint8)
+            contour, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+
+            contours.append(contour[0]) # contour is a tuple (OpenCV 4.5.2), so take the first element which is the array of contour points
+
+        # image_with_overlaid_predictions = img.copy()
+
+        # for contour in contours:
+        #     cv2.drawContours(image_with_overlaid_predictions, [contour], -1, (0,255,0), 1)
+
+        # cv2.imwrite(img_save_path.replace('.jpg', '_contours.png'), image_with_overlaid_predictions)
+
+        
+        
+
+
         txt_save_path = output_path + 'res_' + img_name.split('.')[0] + '.txt'
-        save_result_to_txt(txt_save_path,prediction)
+        save_result_to_txt(txt_save_path,prediction, contours)
 
         print("Time: {:.2f} s / img".format(time.time() - start_time))
         img_count += 1
