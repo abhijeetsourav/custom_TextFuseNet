@@ -186,7 +186,7 @@ if __name__ == "__main__":
     cfg = setup_cfg(args)
     detection_demo = VisualizationDemo(cfg, parallel=True)
 
-    test_images_path = glob.glob(args.input[0])[:10]
+    test_images_path = glob.glob(args.input[0])
 
     output_path = args.output
 
