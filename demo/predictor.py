@@ -64,22 +64,22 @@ class VisualizationDemo(object):
         predictions = self.predictor(image)
         # Convert image from OpenCV BGR format to Matplotlib RGB format.
         image = image[:, :, ::-1]
-        visualizer = Visualizer(image, self.metadata, instance_mode=self.instance_mode)
-        if "panoptic_seg" in predictions:
-            panoptic_seg, segments_info = predictions["panoptic_seg"]
-            vis_output = visualizer.draw_panoptic_seg_predictions(
-                panoptic_seg.to(self.cpu_device), segments_info
-            )
-        else:
-            if "sem_seg" in predictions:
-                vis_output = visualizer.draw_sem_seg(
-                    predictions["sem_seg"].argmax(dim=0).to(self.cpu_device)
-                )
-            if "instances" in predictions:
-                instances = predictions["instances"].to(self.cpu_device)
-                vis_output = visualizer.draw_instance_predictions(predictions=instances)
+        # visualizer = Visualizer(image, self.metadata, instance_mode=self.instance_mode)
+        # if "panoptic_seg" in predictions:
+        #     panoptic_seg, segments_info = predictions["panoptic_seg"]
+        #     vis_output = visualizer.draw_panoptic_seg_predictions(
+        #         panoptic_seg.to(self.cpu_device), segments_info
+        #     )
+        # else:
+        #     if "sem_seg" in predictions:
+        #         vis_output = visualizer.draw_sem_seg(
+        #             predictions["sem_seg"].argmax(dim=0).to(self.cpu_device)
+        #         )
+        #     if "instances" in predictions:
+        #         instances = predictions["instances"].to(self.cpu_device)
+        #         vis_output = visualizer.draw_instance_predictions(predictions=instances)
 
-        return predictions, vis_output
+        return predictions
 
     def _frame_from_video(self, video):
         while video.isOpened():
