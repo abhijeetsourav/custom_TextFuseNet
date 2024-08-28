@@ -144,7 +144,7 @@ if __name__ == "__main__":
         prediction, vis_output, polygons = detection_demo.run_on_image(img)
         # print(f'prediction: {prediction}')
         # print(f'vis_output: {vis_output.get_image()}')
-        print(polygons)
+        print(f'Image b_boxes: {polygons}')
         vis_output.save(img_save_path)
 
         txt_save_path = output_path + 'res_' + img_name.split('.')[0] + '.txt'
