@@ -144,10 +144,15 @@ def get_bboxes(contours):
     return np.array(cnts)
 
 
-def process_image(image_path):
+from multiprocessing import Value, Pool
+import os
+import time
+import cv2
+import glob
 
-    global image_counter
-    image_counter += 1
+def process_image(image_path, image_counter):
+
+    image_counter.value += 1
     
     img_name = os.path.basename(image_path)
     img_save_path = output_path + img_name.split('.')[0] + '.png'
@@ -159,32 +164,21 @@ def process_image(image_path):
     contours = []
 
     for pred_mask in prediction['instances'].pred_masks:
-        # Convert pred_mask to a numpy array and then to a list
         mask = np.array(pred_mask.tolist(), dtype=np.uint8)
-        
-        # Find contours for the mask
         contour, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
         contours.append(contour[0])
 
-    # Now, let's calculate bounding boxes (this function should already be defined in your code)
     b_boxes = get_bboxes(contours)
 
-    # Save the bounding boxes to a CSV file (assuming save_result_to_csv is already defined)
     csv_save_path = output_path + 'res_' + img_name.split('.')[0] + '.csv'
     save_result_to_csv(csv_save_path, prediction, b_boxes)
 
-    # Draw and save bounding boxes on the image (assuming draw_and_save_b_boxes is already defined)
     draw_and_save_b_boxes(img, prediction, b_boxes, img_save_path)
 
-
-    
     det_time = time.time() - start_time
-
     print("det_time: {:.2f} s / img".format(det_time))
+    print("image_counter: {}".format(image_counter.value).center(20))
 
-    print("image_counter: {}".format(image_counter).center(20))
-
-    
     return det_time
 
 if __name__ == "__main__":
@@ -193,16 +187,16 @@ if __name__ == "__main__":
     detection_demo = VisualizationDemo(cfg, parallel=True)
 
     test_images_path = glob.glob(args.input[0])
-
     output_path = args.output
 
     start_time_all = time.time()
 
-    img_counter = 0
+    # Use a shared counter for multiprocessing
+    image_counter = Value('i', 0)
 
     # Use multiprocessing to process images in parallel
-    with mp.Pool(processes=mp.cpu_count()) as pool:
-        det_times = pool.map(process_image, test_images_path)
+    with Pool(processes=mp.cpu_count()) as pool:
+        det_times = pool.starmap(process_image, [(image_path, image_counter) for image_path in test_images_path])
 
     det_time_all = sum(det_times)
     img_count = len(det_times)
