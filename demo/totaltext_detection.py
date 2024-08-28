@@ -159,7 +159,18 @@ def process_image(image_path):
     start_time = time.time()
     prediction, polygons = detection_demo.run_on_image(img)
 
-    print(polygons)
+    classes = prediction['instances'].pred_classes
+
+    for i in range(len(classes)):
+        if classes[i]==0:
+            if len(polygons[i]) != 0:
+                points = []
+                for j in range(0,len(polygons[i][0]),2):
+                    points.append([polygons[i][0][j],polygons[i][0][j+1]])
+                points = np.array(points)
+                print(points)
+
+    
 
     # contours = []
 
