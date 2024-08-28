@@ -154,7 +154,7 @@ if __name__ == "__main__":
     start_time_all = time.time()
     det_time_all = 0
     img_count = 0
-    for i in glob.glob(test_images_path):
+    for i in glob.glob(test_images_path[0]):
         print(i)
         img_name = os.path.basename(i)
         img_save_path = output_path + img_name.split('.')[0] + '_detectron_.jpg'
